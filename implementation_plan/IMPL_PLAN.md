@@ -13,7 +13,7 @@ To spin up the server run:
 - [x] JP-2: Implement initial basic http server with ping endpoint
 - [x] JP-3: Add initial test for ping endpoint
 - [x] JP-4: Add post endpoint
-- [ ] JP-5: Add get all endpoint
+- [x] JP-5: Add get all endpoint
 - [ ] JP-6: Add get single endpoint
 - [ ] JP-7: Add get summary endpoint
 - [ ] JP-8: Ensure tests are passing
@@ -27,3 +27,4 @@ To spin up the server run:
 - [ ] JP-12: Add some better linting
 - [ ] JP-13: Add error monitoring and stats
 - [ ] JP-14: User validation and access controls
+- [ ] JP-15: Ensure debugging support

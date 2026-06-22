@@ -9,6 +9,7 @@ import (
 	"ctrl-hub-technical-challenge/pkg/httpserver"
 	"ctrl-hub-technical-challenge/pkg/storage"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -109,12 +110,48 @@ func TestPostExposure(t *testing.T) {
 func TestGetExposure(t *testing.T) {
 	url := serverAddr + "/exposure"
 
+	exp1 := model.Exposure{
+		ID: "3e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
+		Equipment: model.EquipmentItem{
+			ID:                 "2e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
+			Name:               "AirCat - Drill - 4337",
+			VibrationMagnitude: 2.1,
+		},
+		User: model.User{
+			ID:   "1e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
+			Name: "Bobby Tables",
+		},
+		DurationMinutes: 5,
+		A8:              3.5,
+		Points:          5.6,
+	}
+	exposureStore.ExposureMap[exp1.ID] = exp1
+	exp2 := model.Exposure{
+		ID: "3e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+		Equipment: model.EquipmentItem{
+			ID:                 "2e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+			Name:               "AirCat - Drill - 4338",
+			VibrationMagnitude: 2.8,
+		},
+		User: model.User{
+			ID:   "1e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+			Name: "Bobby Tables",
+		},
+		DurationMinutes: 8,
+		A8:              3.8,
+		Points:          5.8,
+	}
+	exposureStore.ExposureMap[exp2.ID] = exp2
+
 	resp, err := http.Get(url)
 	require.NoError(t, err, "could not reach %s", url)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	fmt.Printf("could not parse exposures: %v", resp.Body)
 	var exposures []model.Exposure
 	err = json.NewDecoder(resp.Body).Decode(&exposures)
 	require.NoError(t, err, "could not parse exposures")
-	assert.Len(t, exposures, 1)
+	require.Len(t, exposures, 2)
+	assert.Equal(t, exp1, exposures[0])
+	assert.Equal(t, exp2, exposures[1])
 }

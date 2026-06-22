@@ -16,13 +16,15 @@ func (s *HttpServer) exposureEndpoint(w http.ResponseWriter, req *http.Request) 
 	}
 
 	if req.Method == "GET" {
-		_, err := s.handleGetExposure(req)
+		exposures, err := s.handleGetAllExposure(req)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			// TODO - return a more meaningful error message
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		// TODO - handle error
+		w.Write(exposures)
 	}
 
 	if req.Method == "POST" {
@@ -38,8 +40,13 @@ func (s *HttpServer) exposureEndpoint(w http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (s *HttpServer) handleGetExposure(req *http.Request) (string, error) {
-	return "", nil
+// TODO #Important note - this endpoint is a bad idea in general, but it's in the spec
+func (s *HttpServer) handleGetAllExposure(req *http.Request) ([]byte, error) {
+	records, err := s.exposureService.GetAllRecords()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get all records", err)
+	}
+	return json.Marshal(records)
 }
 
 func (s *HttpServer) handlePostExposure(req *http.Request) ([]byte, error) {

@@ -21,6 +21,14 @@ func (s *Service) CreateExposure(exposure model.Exposure) error {
 	return nil
 }
 
-func (s *Service) GetExposures() []model.Exposure {
+func (s *Service) GetAllExposures() ([]model.Exposure, error) {
+	records := make([]model.Exposure, 0, len(s.ExposureMap))
+	for _, record := range s.ExposureMap {
+		records = append(records, record)
+	}
+	return records, nil
+}
+
+func (s *Service) GetExposure() []model.Exposure {
 	return nil
 }

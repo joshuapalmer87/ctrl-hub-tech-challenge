@@ -18,6 +18,7 @@ type EquipmentService interface {
 
 type Storage interface {
 	CreateExposure(exposure model.Exposure) error
+	GetAllExposures() ([]model.Exposure, error)
 }
 
 type Service struct {
@@ -68,6 +69,14 @@ func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinut
 	}
 
 	return exposure, nil
+}
+
+func (s *Service) GetAllRecords() ([]model.Exposure, error) {
+	records, err := s.exposureStorage.GetAllExposures()
+	if err != nil {
+		return []model.Exposure{}, fmt.Errorf("unable to read exposure reading", err)
+	}
+	return records, nil
 }
 
 // NB - changed from README as that was invalid golang

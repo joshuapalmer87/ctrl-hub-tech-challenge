@@ -12,6 +12,7 @@ const addr = ":8090" //TODO - make this more easily adaptable, move to config pa
 
 type ExposureService interface {
 	CreateExposureRecord(userId, equipmentId string, durationMinutes int) (model.Exposure, error)
+	GetAllRecords() ([]model.Exposure, error)
 }
 type HttpServer struct {
 	server          *http.Server
