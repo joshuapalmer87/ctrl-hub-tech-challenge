@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"ctrl-hub-technical-challenge/pkg/core/equipment"
+	"ctrl-hub-technical-challenge/pkg/core/exposure"
+	"ctrl-hub-technical-challenge/pkg/core/user"
 	"ctrl-hub-technical-challenge/pkg/httpserver"
+	"ctrl-hub-technical-challenge/pkg/storage"
 	"log"
 	"os"
 	"os/signal"
@@ -11,7 +15,12 @@ import (
 )
 
 func main() {
-	server := httpserver.NewHttpServer()
+	userService := user.NewService()
+	equipmentService := equipment.NewService()
+	exposureStorage := storage.NewService()
+	exposureService := exposure.NewService(userService, equipmentService, exposureStorage)
+
+	server := httpserver.NewHttpServer(exposureService)
 
 	// Run the server in the background so main can wait for a shutdown signal.
 	serveErr := make(chan error, 1)

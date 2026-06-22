@@ -5,17 +5,17 @@ To check you are running the correct version of go run:
 ```asdf install golang```
 
 To spin up the server run: 
-```go build ./... && go run main.go```
+```go build ./... && go run . &```
 
 # Implementation Plan
 ## Initial plan
 - [x] JP-1: Create implementation plan
 - [x] JP-2: Implement initial basic http server with ping endpoint
 - [x] JP-3: Add initial test for ping endpoint
-- [ ] JP-4: Add failing tests for endpoints in spec.yaml
-- [ ] JP-5: Add internal model structs consistent with spec.yaml
-- [ ] JP-6: Add additional endpoints in line with spec, including validation and error returns
-- [ ] JP-7: Add persistence with internal memory storage (not perfect)
+- [x] JP-4: Add post endpoint
+- [ ] JP-5: Add get all endpoint
+- [ ] JP-6: Add get single endpoint
+- [ ] JP-7: Add get summary endpoint
 - [ ] JP-8: Ensure tests are passing
 
 ## Stretch goal
@@ -25,3 +25,5 @@ To spin up the server run:
 - [ ] JP-10: Dockerise the deployment
 - [ ] JP-11: Set up with CI/CD environment (test building, security)
 - [ ] JP-12: Add some better linting
+- [ ] JP-13: Add error monitoring and stats
+- [ ] JP-14: User validation and access controls
