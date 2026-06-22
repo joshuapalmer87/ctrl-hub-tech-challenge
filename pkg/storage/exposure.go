@@ -5,8 +5,6 @@ import (
 	"errors"
 )
 
-// TODO - create a map, with getters and setters for it for now
-
 type Service struct {
 	// Terrible practise, but exposing for ease of use in tests as not using persistence
 	ExposureMap map[string]model.Exposure

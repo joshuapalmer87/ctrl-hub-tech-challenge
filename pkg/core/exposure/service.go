@@ -40,18 +40,18 @@ func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinut
 	// Get user
 	user, err := s.userService.GetUserByID(userId)
 	if err != nil {
-		return model.Exposure{}, fmt.Errorf("unable to find a matching user", err)
+		return model.Exposure{}, fmt.Errorf("unable to find a matching user: %w", err)
 	}
 
 	// Get equipment
 	equipmentItem, err := s.equipmentService.GetEquipmentByID(equipmentId)
 	if err != nil {
-		return model.Exposure{}, fmt.Errorf("unable to find a matching user", err)
+		return model.Exposure{}, fmt.Errorf("unable to find a matching user: %w", err)
 	}
 	// Create UUID
 	exposureID, err := uuid.NewRandom()
 	if err != nil {
-		return model.Exposure{}, fmt.Errorf("unable to generate exposure id", err)
+		return model.Exposure{}, fmt.Errorf("unable to generate exposure id: %w", err)
 	}
 
 	exposure := model.Exposure{
@@ -66,7 +66,7 @@ func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinut
 	// Store via other
 	err = s.exposureStorage.CreateExposure(exposure)
 	if err != nil {
-		return model.Exposure{}, fmt.Errorf("unable to store exposure reading", err)
+		return model.Exposure{}, fmt.Errorf("unable to store exposure reading: %w", err)
 	}
 
 	return exposure, nil
@@ -75,7 +75,7 @@ func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinut
 func (s *Service) GetAllExposureRecords() ([]model.Exposure, error) {
 	records, err := s.exposureStorage.GetAllExposures()
 	if err != nil {
-		return []model.Exposure{}, fmt.Errorf("unable to read exposures", err)
+		return []model.Exposure{}, fmt.Errorf("unable to read exposures: %w", err)
 	}
 	return records, nil
 }
@@ -83,19 +83,17 @@ func (s *Service) GetAllExposureRecords() ([]model.Exposure, error) {
 func (s *Service) GetExposureRecord(ID string) (model.Exposure, error) {
 	record, err := s.exposureStorage.GetExposure(ID)
 	if err != nil {
-		return model.Exposure{}, fmt.Errorf("unable to read exposure", err)
+		return model.Exposure{}, fmt.Errorf("unable to read exposure: %w", err)
 	}
 	return record, nil
 }
 
 // NB - changed from README as that was invalid golang
 func generateExposureA8(vibrationMagnitude float64, triggerTime int) float64 {
-	return 0.0
-	//return vibrationMagnitude * math.Sqrt((triggerTime/60)/8)
+	return vibrationMagnitude * math.Sqrt(float64((triggerTime/60)/8))
 }
 
 func generateExposurePoints(vibrationMagnitude float64, triggerTime int) float64 {
-	points := 0.0
-	//points := math.Pow((vibrationMagnitude/2.5), 2) * (((triggerTime / 60) / 8) * 100)
+	points := math.Pow((vibrationMagnitude/2.5), 2) * (((float64(triggerTime) / 60) / 8) * 100)
 	return math.Round(points)
 }

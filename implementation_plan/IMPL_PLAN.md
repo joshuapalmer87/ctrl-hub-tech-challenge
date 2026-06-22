@@ -29,3 +29,4 @@ To spin up the server run:
 - [ ] JP-13: Add error monitoring and stats
 - [ ] JP-14: User validation and access controls
 - [ ] JP-15: Ensure debugging support
+- [ ] Investigate whether there are any official inputs and outputs to the calculations to ensure alignment

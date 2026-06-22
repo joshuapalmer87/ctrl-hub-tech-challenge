@@ -82,7 +82,7 @@ func TestPostExposure(t *testing.T) {
 
 	body := `{
 		"equipment_id": "2e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
-  		"duration": 5,
+  		"duration": 480,
 		"user_id": "713be58e-0d79-4df2-a85c-9f44ca513a7d"
 	}`
 
@@ -98,9 +98,9 @@ func TestPostExposure(t *testing.T) {
 	assert.Equal(t, "AirCat - Drill - 4337", exposureResult.Equipment.Name)
 	assert.Equal(t, 2.1, exposureResult.Equipment.VibrationMagnitude)
 	assert.Equal(t, "Bobby Tables", exposureResult.User.Name)
-	assert.Equal(t, 5, exposureResult.DurationMinutes)
-	assert.Equal(t, 0.0, exposureResult.A8)     // TODO - fix this
-	assert.Equal(t, 0.0, exposureResult.Points) // TODO - fix this
+	assert.Equal(t, 480, exposureResult.DurationMinutes)
+	assert.Equal(t, 2.1, exposureResult.A8)
+	assert.Equal(t, 71.0, exposureResult.Points)
 
 	// Test stored values
 	storedExposure, ok := exposureStore.ExposureMap[exposureResult.ID]
