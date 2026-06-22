@@ -10,67 +10,92 @@ import (
 
 // TODO - add an error logging layer somewhere around here
 
-func (s *HttpServer) exposureEndpoint(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET" && req.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+// TODO #Important note - this endpoint is a bad idea in general, but it's in the spec
+func (s *HttpServer) getAllExposure(w http.ResponseWriter, req *http.Request) {
+	records, err := s.exposureService.GetAllExposureRecords()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
 	}
-
-	if req.Method == "GET" {
-		exposures, err := s.handleGetAllExposure(req)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			// TODO - return a more meaningful error message
-			return
-		}
+	if result, ok := marshallJSON(w, records); ok {
 		w.WriteHeader(http.StatusOK)
 		// TODO - handle error
-		w.Write(exposures)
-	}
-
-	if req.Method == "POST" {
-		exposure, err := s.handlePostExposure(req)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			// TODO - return a more meaningful error message
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
-		// TODO - handle error
-		w.Write(exposure)
+		w.Write(result)
 	}
 }
 
-// TODO #Important note - this endpoint is a bad idea in general, but it's in the spec
-func (s *HttpServer) handleGetAllExposure(req *http.Request) ([]byte, error) {
-	records, err := s.exposureService.GetAllRecords()
-	if err != nil {
-		return nil, fmt.Errorf("unable to get all records", err)
-	}
-	return json.Marshal(records)
-}
-
-func (s *HttpServer) handlePostExposure(req *http.Request) ([]byte, error) {
-	// Decode and validate
+func (s *HttpServer) postExposure(w http.ResponseWriter, req *http.Request) {
 	var exposure ExposurePost
 	err := json.NewDecoder(req.Body).Decode(&exposure)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode exposure provided", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
 	}
-
-	err = uuid.Validate(exposure.EquipmentID)
+	err = s.validatePostExposure(exposure)
 	if err != nil {
-		return nil, fmt.Errorf("equipment ID is not a valid UUID: %v", err)
-	}
-
-	err = uuid.Validate(exposure.UserID)
-	if err != nil {
-		return nil, fmt.Errorf("user ID is not a valid UUID: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
 	}
 
 	record, err := s.exposureService.CreateExposureRecord(exposure.UserID, exposure.EquipmentID, exposure.Duration)
 	if err != nil {
-		return nil, fmt.Errorf("unable to persist exposure record", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
 	}
 
-	return json.Marshal(record)
+	if exposureResult, ok := marshallJSON(w, record); ok {
+		w.WriteHeader(http.StatusCreated)
+		// TODO - handle error
+		w.Write(exposureResult)
+	}
+}
+
+func (s *HttpServer) getExposure(w http.ResponseWriter, req *http.Request) {
+	idString := req.PathValue(exposureId)
+	err := uuid.Validate(idString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
+	}
+
+	record, err := s.exposureService.GetExposureRecord(idString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
+	}
+	if result, ok := marshallJSON(w, record); ok {
+		w.WriteHeader(http.StatusOK)
+		// TODO - handle error
+		w.Write(result)
+	}
+}
+
+func (s *HttpServer) validatePostExposure(exposure ExposurePost) error {
+	err := uuid.Validate(exposure.EquipmentID)
+	if err != nil {
+		return fmt.Errorf("equipment ID is not a valid UUID: %v", err)
+	}
+
+	err = uuid.Validate(exposure.UserID)
+	if err != nil {
+		return fmt.Errorf("user ID is not a valid UUID: %v", err)
+	}
+
+	return nil
+}
+
+func marshallJSON(w http.ResponseWriter, response any) ([]byte, bool) {
+	exposureResult, err := json.Marshal(response)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return nil, false
+	}
+	return exposureResult, true
 }

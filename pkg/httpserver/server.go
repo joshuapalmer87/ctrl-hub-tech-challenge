@@ -9,10 +9,12 @@ import (
 )
 
 const addr = ":8090" //TODO - make this more easily adaptable, move to config package
+const exposureId = "exposure_id"
 
 type ExposureService interface {
 	CreateExposureRecord(userId, equipmentId string, durationMinutes int) (model.Exposure, error)
-	GetAllRecords() ([]model.Exposure, error)
+	GetAllExposureRecords() ([]model.Exposure, error)
+	GetExposureRecord(ID string) (model.Exposure, error)
 }
 type HttpServer struct {
 	server          *http.Server
@@ -31,8 +33,10 @@ func NewHttpServer(service ExposureService) *HttpServer {
 func (s *HttpServer) Serve() error {
 
 	// TODO - move to NewServeMux instead to only allowing one server instance
-	http.HandleFunc("/ping", ping)
-	http.HandleFunc("/exposure", s.exposureEndpoint)
+	http.HandleFunc("GET /ping", ping)
+	http.HandleFunc("GET /exposure", s.getAllExposure)
+	http.HandleFunc("POST /exposure", s.postExposure)
+	http.HandleFunc("GET /exposure/{"+exposureId+"}", s.getExposure)
 
 	err := s.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -49,10 +53,5 @@ func (s *HttpServer) Shutdown(ctx context.Context) error {
 }
 
 func ping(w http.ResponseWriter, req *http.Request) {
-
-	if req.Method != "GET" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	} else {
-		fmt.Fprintf(w, "ping\n")
-	}
+	fmt.Fprintf(w, "ping\n")
 }

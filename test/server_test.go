@@ -9,7 +9,6 @@ import (
 	"ctrl-hub-technical-challenge/pkg/httpserver"
 	"ctrl-hub-technical-challenge/pkg/storage"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -77,6 +76,8 @@ func TestServerPing(t *testing.T) {
 }
 
 func TestPostExposure(t *testing.T) {
+	cleanStorage()
+
 	url := serverAddr + "/exposure"
 
 	body := `{
@@ -90,26 +91,28 @@ func TestPostExposure(t *testing.T) {
 	require.NoError(t, err, "could not reach %s", url)
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-	var exposure model.Exposure
-	err = json.NewDecoder(resp.Body).Decode(&exposure)
+	var exposureResult model.Exposure
+	err = json.NewDecoder(resp.Body).Decode(&exposureResult)
 	require.NoError(t, err, "could not parse exposure")
 
-	assert.Equal(t, "AirCat - Drill - 4337", exposure.Equipment.Name)
-	assert.Equal(t, 2.1, exposure.Equipment.VibrationMagnitude)
-	assert.Equal(t, "Bobby Tables", exposure.User.Name)
-	assert.Equal(t, 5, exposure.DurationMinutes)
-	assert.Equal(t, 0.0, exposure.A8)     // TODO - fix this
-	assert.Equal(t, 0.0, exposure.Points) // TODO - fix this
+	assert.Equal(t, "AirCat - Drill - 4337", exposureResult.Equipment.Name)
+	assert.Equal(t, 2.1, exposureResult.Equipment.VibrationMagnitude)
+	assert.Equal(t, "Bobby Tables", exposureResult.User.Name)
+	assert.Equal(t, 5, exposureResult.DurationMinutes)
+	assert.Equal(t, 0.0, exposureResult.A8)     // TODO - fix this
+	assert.Equal(t, 0.0, exposureResult.Points) // TODO - fix this
 
 	// Test stored values
-	storedExposure, ok := exposureStore.ExposureMap[exposure.ID]
+	storedExposure, ok := exposureStore.ExposureMap[exposureResult.ID]
 	require.True(t, ok)
-	assert.Equal(t, exposure, storedExposure)
+	assert.Equal(t, exposureResult, storedExposure)
 }
 
-func TestGetExposure(t *testing.T) {
+func TestGetAllExposure(t *testing.T) {
+	cleanStorage()
 	url := serverAddr + "/exposure"
 
+	// TODO - add some fixtures here for creating data and validating it
 	exp1 := model.Exposure{
 		ID: "3e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
 		Equipment: model.EquipmentItem{
@@ -147,11 +150,62 @@ func TestGetExposure(t *testing.T) {
 	require.NoError(t, err, "could not reach %s", url)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	fmt.Printf("could not parse exposures: %v", resp.Body)
 	var exposures []model.Exposure
 	err = json.NewDecoder(resp.Body).Decode(&exposures)
 	require.NoError(t, err, "could not parse exposures")
 	require.Len(t, exposures, 2)
 	assert.Equal(t, exp1, exposures[0])
 	assert.Equal(t, exp2, exposures[1])
+}
+
+func TestGetExposure(t *testing.T) {
+	cleanStorage()
+	expID1 := "3e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49"
+	url := serverAddr + "/exposure/" + expID1
+
+	exp1 := model.Exposure{
+		ID: expID1,
+		Equipment: model.EquipmentItem{
+			ID:                 "2e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
+			Name:               "AirCat - Drill - 4337",
+			VibrationMagnitude: 2.1,
+		},
+		User: model.User{
+			ID:   "1e85d43d-dd9b-4e8d-b2ce-97b8d7d69d49",
+			Name: "Bobby Tables",
+		},
+		DurationMinutes: 5,
+		A8:              3.5,
+		Points:          5.6,
+	}
+	exposureStore.ExposureMap[exp1.ID] = exp1
+	exp2 := model.Exposure{
+		ID: "3e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+		Equipment: model.EquipmentItem{
+			ID:                 "2e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+			Name:               "AirCat - Drill - 4338",
+			VibrationMagnitude: 2.8,
+		},
+		User: model.User{
+			ID:   "1e85d43d-dd9b-4e8d-b2ce-97b8d7d69d48",
+			Name: "Bobby Tables",
+		},
+		DurationMinutes: 8,
+		A8:              3.8,
+		Points:          5.8,
+	}
+	exposureStore.ExposureMap[exp2.ID] = exp2
+
+	resp, err := http.Get(url)
+	require.NoError(t, err, "could not reach %s", url)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	var exposureResult model.Exposure
+	err = json.NewDecoder(resp.Body).Decode(&exposureResult)
+	require.NoError(t, err, "could not parse exposure")
+	assert.Equal(t, exp1, exposureResult)
+}
+
+func cleanStorage() {
+	exposureStore.ExposureMap = make(map[string]model.Exposure)
 }

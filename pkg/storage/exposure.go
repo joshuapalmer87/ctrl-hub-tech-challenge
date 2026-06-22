@@ -1,6 +1,9 @@
 package storage
 
-import "ctrl-hub-technical-challenge/pkg/core/model"
+import (
+	"ctrl-hub-technical-challenge/pkg/core/model"
+	"errors"
+)
 
 // TODO - create a map, with getters and setters for it for now
 
@@ -29,6 +32,10 @@ func (s *Service) GetAllExposures() ([]model.Exposure, error) {
 	return records, nil
 }
 
-func (s *Service) GetExposure() []model.Exposure {
-	return nil
+func (s *Service) GetExposure(ID string) (model.Exposure, error) {
+	exposure, ok := s.ExposureMap[ID]
+	if !ok {
+		return model.Exposure{}, errors.New("exposure not found with supplied id")
+	}
+	return exposure, nil
 }
