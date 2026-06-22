@@ -4,6 +4,7 @@ import (
 	"ctrl-hub-technical-challenge/pkg/core/model"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,7 +18,7 @@ type EquipmentService interface {
 }
 
 type Storage interface {
-	CreateExposure(exposure model.Exposure) error
+	CreateExposure(exposure model.Exposure, exposureTime time.Time) error
 	GetAllExposures() ([]model.Exposure, error)
 	GetExposure(id string) (model.Exposure, error)
 }
@@ -36,7 +37,7 @@ func NewService(userService UserService, equipmentService EquipmentService, stor
 	}
 }
 
-func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinutes int) (model.Exposure, error) {
+func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinutes int, exposureDateTime time.Time) (model.Exposure, error) {
 	// Get user
 	user, err := s.userService.GetUserByID(userId)
 	if err != nil {
@@ -63,8 +64,7 @@ func (s *Service) CreateExposureRecord(userId, equipmentId string, durationMinut
 		Points:          generateExposurePoints(equipmentItem.VibrationMagnitude, durationMinutes),
 	}
 
-	// Store via other
-	err = s.exposureStorage.CreateExposure(exposure)
+	err = s.exposureStorage.CreateExposure(exposure, exposureDateTime)
 	if err != nil {
 		return model.Exposure{}, fmt.Errorf("unable to store exposure reading: %w", err)
 	}

@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const addr = ":8090" //TODO - make this more easily adaptable, move to config package
 const exposureId = "exposure_id"
 
 type ExposureService interface {
-	CreateExposureRecord(userId, equipmentId string, durationMinutes int) (model.Exposure, error)
+	CreateExposureRecord(userId, equipmentId string, durationMinutes int, exposureDateTime time.Time) (model.Exposure, error)
 	GetAllExposureRecords() ([]model.Exposure, error)
 	GetExposureRecord(ID string) (model.Exposure, error)
 }

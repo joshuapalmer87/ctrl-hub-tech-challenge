@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -26,6 +27,7 @@ func (s *HttpServer) getAllExposure(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *HttpServer) postExposure(w http.ResponseWriter, req *http.Request) {
+	currentTime := time.Now()
 	var exposure ExposurePost
 	err := json.NewDecoder(req.Body).Decode(&exposure)
 	if err != nil {
@@ -40,7 +42,7 @@ func (s *HttpServer) postExposure(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	record, err := s.exposureService.CreateExposureRecord(exposure.UserID, exposure.EquipmentID, exposure.Duration)
+	record, err := s.exposureService.CreateExposureRecord(exposure.UserID, exposure.EquipmentID, exposure.Duration, currentTime)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		// TODO - return a more meaningful error message

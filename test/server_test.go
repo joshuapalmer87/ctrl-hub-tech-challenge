@@ -87,7 +87,9 @@ func TestPostExposure(t *testing.T) {
 	}`
 
 	// Test response
+	startTime := time.Now()
 	resp, err := http.Post(url, "application/json", strings.NewReader(body))
+	endTime := time.Now()
 	require.NoError(t, err, "could not reach %s", url)
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -106,6 +108,13 @@ func TestPostExposure(t *testing.T) {
 	storedExposure, ok := exposureStore.ExposureMap[exposureResult.ID]
 	require.True(t, ok)
 	assert.Equal(t, exposureResult, storedExposure)
+
+	storedExposuresWithTime, ok := exposureStore.UserExposureMap["713be58e-0d79-4df2-a85c-9f44ca513a7d"]
+	require.True(t, ok)
+	assert.Len(t, storedExposuresWithTime, 1)
+	assert.Equal(t, exposureResult, storedExposuresWithTime[0].Exposure)
+	assert.WithinRange(t, storedExposuresWithTime[0].ExposureTime, startTime, endTime)
+
 }
 
 func TestGetAllExposure(t *testing.T) {
