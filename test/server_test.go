@@ -1,4 +1,4 @@
-package httpserver
+package httpserver_test
 
 import (
 	"context"
@@ -6,10 +6,25 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TODO - consider if we can share a single server instance for testing or if we need isolation
+const serverAddr = "http://localhost:8090" // TODO - construct from config when added
+
 func TestServerPing(t *testing.T) {
+	setup(t)
+	url := serverAddr + "/ping"
+	resp, err := http.Get(url)
+	if err == nil {
+		require.NoError(t, err)
+	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+// Spins up the server as a seperate process and checks that it's running, and sets up shutdown smoothly
+func setup(t *testing.T) {
 	server := httpserver.NewHttpServer()
 
 	// Serve blocks (http.ListenAndServe), so run it in the background.
@@ -22,10 +37,11 @@ func TestServerPing(t *testing.T) {
 		}
 	})
 
-	const url = "http://localhost:8090/ping" // TODO - construct from config when added
+	url := serverAddr + "/ping"
 
 	// The server boots asynchronously, so retry until it accepts
 	// connections, giving up after a short timeout.
+	// TODO - is there a nicer way to do this?
 	var resp *http.Response
 	var err error
 	for attempt := 0; attempt < 50; attempt++ {
@@ -39,8 +55,4 @@ func TestServerPing(t *testing.T) {
 		t.Fatalf("could not reach %s: %v", url, err)
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("GET %s: expected status %d OK, got %d", url, http.StatusOK, resp.StatusCode)
-	}
 }
