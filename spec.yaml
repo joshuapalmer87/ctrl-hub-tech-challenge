@@ -43,7 +43,7 @@ paths:
             examples:
               - "e8f7b50c-cc18-42f9-a275-0b4ead73f806"
       responses:
-        "201":
+        "200":
           description: The matching exposure resource
           content:
             application/json:

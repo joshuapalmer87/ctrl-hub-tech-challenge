@@ -14,6 +14,7 @@ The general business premise is that we have users who use equipment items on a 
 
 So that you do not need to reverse engineer the calculations the HSE look for, here is the calculation expressed as a function which you may choose to use as is, or move to a more appropriate location in your codebase (for example, as a method on your `Exposure` entity). Both of these functions take two parameters - the vibration magnitude of the equipment item being used (measured in ms/2), and the duration of use (measured in minutes):
 
+-- Unfortunately this doesn't work as is!
 ```golang
 func partialExposureA8(vibrationMagnitude float64, triggerTime int) float64 {
 	return vibrationMagnitude * math.Sqrt((triggerTime / 60) / 8)
