@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"ctrl-hub-technical-challenge/pkg/core/model"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,6 +9,13 @@ import (
 
 	"github.com/google/uuid"
 )
+
+type ExposureService interface {
+	CreateExposureRecord(userId, equipmentId string, durationMinutes int, exposureDateTime time.Time) (model.Exposure, error)
+	GetAllExposureRecords() ([]model.Exposure, error)
+	GetExposureRecord(ID string) (model.Exposure, error)
+	GetUserExposureSummary(userId string, startDateTime, endDateTime time.Time) (model.ExposureSummary, error)
+}
 
 // TODO - add an error logging layer somewhere around here
 
@@ -66,6 +74,41 @@ func (s *HttpServer) getExposure(w http.ResponseWriter, req *http.Request) {
 	}
 
 	record, err := s.exposureService.GetExposureRecord(idString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
+	}
+	if result, ok := marshallJSON(w, record); ok {
+		w.WriteHeader(http.StatusOK)
+		// TODO - handle error
+		w.Write(result)
+	}
+}
+
+func (s *HttpServer) getExposureSummary(w http.ResponseWriter, req *http.Request) {
+	userIdString := req.PathValue(userId)
+	err := uuid.Validate(userIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		// TODO - return a more meaningful error message
+		return
+	}
+
+	startDateTimeString := req.URL.Query().Get(startingAt)
+	startDateTime, err := time.Parse(time.RFC3339, startDateTimeString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	endDateTimeString := req.URL.Query().Get(endingAt)
+	endDateTime, err := time.Parse(time.RFC3339, endDateTimeString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	record, err := s.exposureService.GetUserExposureSummary(userIdString, startDateTime, endDateTime)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		// TODO - return a more meaningful error message

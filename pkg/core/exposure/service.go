@@ -21,6 +21,7 @@ type Storage interface {
 	CreateExposure(exposure model.Exposure, exposureTime time.Time) error
 	GetAllExposures() ([]model.Exposure, error)
 	GetExposure(id string) (model.Exposure, error)
+	GetUserExposures(userID string) []model.ExposureWithTime
 }
 
 type Service struct {
@@ -86,6 +87,29 @@ func (s *Service) GetExposureRecord(ID string) (model.Exposure, error) {
 		return model.Exposure{}, fmt.Errorf("unable to read exposure: %w", err)
 	}
 	return record, nil
+}
+
+func (s *Service) GetUserExposureSummary(userId string, startDateTime, endDateTime time.Time) (model.ExposureSummary, error) {
+	user, err := s.userService.GetUserByID(userId)
+	if err != nil {
+		return model.ExposureSummary{}, fmt.Errorf("unable to find a matching user: %w", err)
+	}
+
+	userExposures := s.exposureStorage.GetUserExposures(userId)
+	var a8Total, pointsTotal float64
+	for _, exposure := range userExposures {
+		// Start is exclusive, end is inclusive
+		if exposure.ExposureTime.After(startDateTime) && (exposure.ExposureTime.Equal(endDateTime) || exposure.ExposureTime.Before(endDateTime)) {
+			a8Total = a8Total + exposure.Exposure.A8
+			pointsTotal = pointsTotal + exposure.Exposure.Points
+		}
+	}
+
+	return model.ExposureSummary{
+		User:   user,
+		A8:     a8Total,
+		Points: pointsTotal,
+	}, nil
 }
 
 // NB - changed from README as that was invalid golang

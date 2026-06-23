@@ -2,21 +2,19 @@ package httpserver
 
 import (
 	"context"
-	"ctrl-hub-technical-challenge/pkg/core/model"
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 const addr = ":8090" //TODO - make this more easily adaptable, move to config package
-const exposureId = "exposure_id"
+const (
+	exposureId = "exposureId"
+	userId     = "userId"
+	startingAt = "starting_at"
+	endingAt   = "ending_at"
+)
 
-type ExposureService interface {
-	CreateExposureRecord(userId, equipmentId string, durationMinutes int, exposureDateTime time.Time) (model.Exposure, error)
-	GetAllExposureRecords() ([]model.Exposure, error)
-	GetExposureRecord(ID string) (model.Exposure, error)
-}
 type HttpServer struct {
 	server          *http.Server
 	exposureService ExposureService
@@ -38,6 +36,7 @@ func (s *HttpServer) Serve() error {
 	http.HandleFunc("GET /exposure", s.getAllExposure)
 	http.HandleFunc("POST /exposure", s.postExposure)
 	http.HandleFunc("GET /exposure/{"+exposureId+"}", s.getExposure)
+	http.HandleFunc("GET /users/{"+userId+"}/exposure-summary", s.getExposureSummary)
 
 	err := s.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {

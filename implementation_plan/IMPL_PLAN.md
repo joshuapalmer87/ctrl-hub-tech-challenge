@@ -15,12 +15,12 @@ To spin up the server run:
 - [x] JP-4: Add post endpoint
 - [x] JP-5: Add get all endpoint
 - [x] JP-6: Add get single endpoint
-- [ ] JP-7: Add get summary endpoint
-- [ ] JP-8: Ensure tests are passing
+- [x] JP-7: Add get summary endpoint
 
 ## Stretch goal
 - [ ] Supplement testing with more paths tested, particularly error paths
 - [ ] JP-9: Move to real backing storage e.g. mongo/postgres
+- [ ] Return more meaningful responses for failed validation, etc
 
 ## Further work
 - [ ] JP-10: Dockerise the deployment

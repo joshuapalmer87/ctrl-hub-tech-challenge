@@ -215,6 +215,72 @@ func TestGetExposure(t *testing.T) {
 	assert.Equal(t, exp1, exposureResult)
 }
 
+func TestGetUserSummary(t *testing.T) {
+	cleanStorage()
+
+	startTime := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(2026, time.January, 2, 0, 0, 0, 0, time.UTC)
+	userID := "713be58e-0d79-4df2-a85c-9f44ca513a7d"
+
+	// Add 5 different exposures, one either side of both boundaries and one more in the middle
+	exposures := make([]model.ExposureWithTime, 0, 5)
+	exposures = append(exposures, model.ExposureWithTime{
+		Exposure: model.Exposure{
+			A8:     1.1,
+			Points: 1.2,
+		},
+		ExposureTime: startTime.Add(-1 * time.Second),
+	})
+	exposures = append(exposures, model.ExposureWithTime{
+		Exposure: model.Exposure{
+			A8:     2.1,
+			Points: 2.2,
+		},
+		ExposureTime: startTime.Add(1 * time.Second),
+	})
+	exposures = append(exposures, model.ExposureWithTime{
+		Exposure: model.Exposure{
+			A8:     3.1,
+			Points: 3.2,
+		},
+		ExposureTime: startTime.Add(12 * time.Hour),
+	})
+	exposures = append(exposures, model.ExposureWithTime{
+		Exposure: model.Exposure{
+			A8:     4.1,
+			Points: 4.2,
+		},
+		ExposureTime: endTime.Add(-1 * time.Second),
+	})
+	exposures = append(exposures, model.ExposureWithTime{
+		Exposure: model.Exposure{
+			A8:     5.1,
+			Points: 5.2,
+		},
+		ExposureTime: endTime.Add(1 * time.Second),
+	})
+	exposureStore.UserExposureMap[userID] = exposures
+
+	// Perform the get
+	url := serverAddr + "/users/" + userID + "/exposure-summary?" +
+		"starting_at=" + startTime.Format("2006-01-02T15:04:05Z") +
+		"&ending_at=" + endTime.Format("2006-01-02T15:04:05Z")
+
+	// Expect the summary to only have the middle 3
+	resp, err := http.Get(url)
+	require.NoError(t, err, "could not reach %s", url)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	var exposureSummary model.ExposureSummary
+	err = json.NewDecoder(resp.Body).Decode(&exposureSummary)
+	require.NoError(t, err, "could not parse exposure summary")
+
+	assert.Equal(t, "Bobby Tables", exposureSummary.User.Name)
+	assert.InDelta(t, 9.3, exposureSummary.A8, 0.0001)
+	assert.InDelta(t, 9.6, exposureSummary.Points, 0.0001)
+}
+
 func cleanStorage() {
 	exposureStore.ExposureMap = make(map[string]model.Exposure)
+	exposureStore.UserExposureMap = make(map[string][]model.ExposureWithTime)
 }

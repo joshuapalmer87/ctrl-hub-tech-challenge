@@ -49,3 +49,8 @@ func (s *Service) GetExposure(ID string) (model.Exposure, error) {
 	}
 	return exposure, nil
 }
+
+func (s *Service) GetUserExposures(userID string) []model.ExposureWithTime {
+	exposures, _ := s.UserExposureMap[userID]
+	return exposures
+}
